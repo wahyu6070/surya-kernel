@@ -5,7 +5,8 @@
 
 SECONDS=0 # builtin bash timer
 ZIPNAME="Zix-surya-$(date '+%Y%m%d-%H%M').zip"
-TC_DIR="$(pwd)/tc/clang-498229"
+CLANG_VER="clang-r522817" # official Android kernel toolchain (clang 18.0.1)
+TC_DIR="$(pwd)/tc/$CLANG_VER"
 AK3_DIR="$(pwd)/android/AnyKernel3"
 DEFCONFIG="surya_defconfig"
 
@@ -16,10 +17,13 @@ fi
 
 export PATH="$TC_DIR/bin:$PATH"
 
-if ! [ -d "$TC_DIR" ]; then
-	echo "AOSP clang not found! Cloning to $TC_DIR..."
-	if ! git clone --depth=1 -b 17 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone "$TC_DIR"; then
-		echo "Cloning failed! Aborting..."
+if ! [ -x "$TC_DIR/bin/clang" ]; then
+	echo "AOSP $CLANG_VER not found! Downloading to $TC_DIR..."
+	rm -rf "$TC_DIR"
+	mkdir -p "$TC_DIR"
+	if ! curl -fL "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/$CLANG_VER.tar.gz" | tar -xz -C "$TC_DIR"; then
+		echo "Download failed! Aborting..."
+		rm -rf "$TC_DIR"
 		exit 1
 	fi
 fi

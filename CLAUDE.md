@@ -28,7 +28,7 @@ Commit and push directly to the working branch. Do not open pull requests; the u
 ```bash
 ./build.sh
 ```
-Uses the AOSP clang 17 toolchain (r498229), which is auto-cloned to `tc/clang-498229` if missing. Produces a flashable AnyKernel3 zip `Zix-surya-<YYYYMMDD-HHMM>-<hash8>.zip` in the repo root.
+Uses Google's official Android kernel toolchain `clang-r522817` (clang 18.0.1, the version the AOSP prebuilts README lists for the Android Linux Kernel). If `tc/clang-r522817` is missing, it is downloaded from `android.googlesource.com/platform/prebuilts/clang/host/linux-x86` (about 3 GB unpacked). Don't switch to third-party clang mirrors, GCC or the NDK unless the user asks. Produces a flashable AnyKernel3 zip `Zix-surya-<YYYYMMDD-HHMM>-<hash8>.zip` in the repo root.
 
 AnyKernel3: `android/AnyKernel3` is a gitlink (to `surya-aosp/AnyKernel3` branch `shinigami`, commit `1eb28870`) with **no `.gitmodules`**, so in a fresh clone it is an empty directory. `build.sh` only checks that the directory exists, so it would then zip just the kernel images, without the installer. Before packaging, make sure `android/AnyKernel3/anykernel.sh` exists. If it doesn't, populate the folder from `https://github.com/surya-aosp/AnyKernel3` (branch `shinigami`). The flash banner comes from that template (`kernel.string=Shinigami Kernel | POCO X3/NFC`).
 
@@ -45,7 +45,7 @@ AnyKernel3: `android/AnyKernel3` is a gitlink (to `surya-aosp/AnyKernel3` branch
 
 ### Manual build (without build.sh wrapper)
 ```bash
-export PATH="$PWD/tc/clang-498229/bin:$PATH"
+export PATH="$PWD/tc/clang-r522817/bin:$PATH"
 make O=out ARCH=arm64 surya_defconfig
 make -j$(nproc) O=out ARCH=arm64 CC=clang LD=ld.lld AS=llvm-as AR=llvm-ar NM=llvm-nm \
   OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 \
