@@ -4,7 +4,8 @@
 # Copyright (C) 2020-2021 Adithya R.
 
 SECONDS=0 # builtin bash timer
-ZIPNAME="Zix-surya-$(date '+%Y%m%d-%H%M').zip"
+KERNEL_NAME="Zix Gaming Kernel by wahyu6070"
+ZIPNAME="Zix-Gaming-Kernel-by-wahyu6070-surya-$(date '+%Y%m%d-%H%M').zip"
 CLANG_VER="clang-r522817" # official Android kernel toolchain (clang 18.0.1)
 TC_DIR="$(pwd)/tc/$CLANG_VER"
 AK3_DIR="$(pwd)/android/AnyKernel3"
@@ -58,7 +59,7 @@ dtbo="out/arch/arm64/boot/dtbo.img"
 
 if [ -f "$kernel" ] && [ -f "$dtb" ] && [ -f "$dtbo" ]; then
 	echo -e "\nKernel compiled succesfully! Zipping up...\n"
-	if [ -d "$AK3_DIR" ]; then
+	if [ -f "$AK3_DIR/anykernel.sh" ]; then
 		cp -r $AK3_DIR AnyKernel3
 	elif ! git clone -q https://github.com/surya-aosp/AnyKernel3 -b shinigami; then
 		echo -e "\nAnyKernel3 repo not found locally and couldn't clone from GitHub! Aborting..."
@@ -68,10 +69,12 @@ if [ -f "$kernel" ] && [ -f "$dtb" ] && [ -f "$dtbo" ]; then
 	rm -rf out/arch/arm64/boot
 	cd AnyKernel3
 	git checkout shinigami &> /dev/null
+	sed -i "s#^kernel.string=.*#kernel.string=$KERNEL_NAME | POCO X3/NFC#" anykernel.sh
 	zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
 	cd ..
 	rm -rf AnyKernel3
 	echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
+	echo "$KERNEL_NAME"
 	echo "Zip: $ZIPNAME"
 else
 	echo -e "\nCompilation failed!"
