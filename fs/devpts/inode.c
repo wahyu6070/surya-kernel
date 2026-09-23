@@ -587,6 +587,13 @@ struct dentry *devpts_pty_new(struct pts_fs_info *fsi, int index, void *priv)
 	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
 	init_special_inode(inode, S_IFCHR|opts->mode, MKDEV(UNIX98_PTY_SLAVE_MAJOR, index));
 
+#ifdef CONFIG_KSU
+	{
+		extern int ksu_handle_devpts(struct inode *);
+		ksu_handle_devpts(inode);
+	}
+#endif
+
 	sprintf(s, "%d", index);
 
 	dentry = d_alloc_name(root, s);
