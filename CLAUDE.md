@@ -14,6 +14,8 @@ Only three branches exist. Each one is a separate kernel variant and is develope
 - `main` — main variant
 - `daily` — daily variant with a conservative config for battery life
 
+The root manager app matching this kernel is **KernelSU Next v3.2.0 (33129)**. All official KernelSU Next APKs share the signing certificate in `drivers/kernelsu/Kbuild` (`KSU_NEXT_MANAGER_SIZE`/`HASH`), so v3.4.0 is also recognized, but v3.2.0 matches the in-tree `v3.2.0-legacy-susfs`.
+
 Never sync one variant onto another (merge, fast-forward or push) unless the user asks for that specific sync. Don't create extra feature or test branches unless the user asks.
 
 On 2026-09-23 a KernelSU Next/SUSFS update and Docker-in-chroot config options caused a bootloop. `main` and `gaming` were reset to `d77a27a79`, and the Docker work was dropped. Don't re-add those changes unless the user asks.
@@ -54,7 +56,7 @@ make -j$(nproc) O=out ARCH=arm64 CC=clang LD=ld.lld AS=llvm-as AR=llvm-ar NM=llv
 ```
 
 ### Host requirements
-`build-essential`, `bison`, `flex`, `libssl-dev`, `libelf-dev`, `binutils-aarch64-linux-gnu`, `binutils-arm-linux-gnueabi`, `zip`, `bc`. A clean build takes about 7 minutes on the dev machine.
+`build-essential`, `bison`, `flex`, `libssl-dev`, `libelf-dev`, `binutils-aarch64-linux-gnu`, `binutils-arm-linux-gnueabi`, `zip`, `bc`. A clean build takes about 7–8 minutes on the dev machine; a ThinLTO link adds a few minutes.
 
 ### Build artifacts
 - `out/arch/arm64/boot/Image.gz` — compressed kernel image
@@ -114,15 +116,18 @@ Built-in via `CONFIG_WIREGUARD=y` (backported into this 4.14 tree).
 
 ### Scheduler / Performance (gaming tuning)
 - WALT + EAS: `CONFIG_SCHED_WALT=y`, `CONFIG_SCHED_TUNE=y`, `CONFIG_DEFAULT_USE_ENERGY_AWARE=y`
-- CPUFreq: default governor **performance** (`CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y`), schedutil also built in
-- `CONFIG_CPU_BOOST=y`, `CONFIG_DEVFREQ_BOOST=y`
+- CPUFreq: default governor **schedutil** (`CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y`). Performance is still built in but is not the default, because pinning max clocks triggers thermal throttling.
+- `CONFIG_CPU_BOOST=y`: `drivers/cpufreq/cpu-boost.c` enables input boost by default (`0:1324800 6:1209600`, 100 ms) with `sched_boost_on_input=2` (CONSERVATIVE_BOOST). The ROM can override these module params.
+- `CONFIG_DEVFREQ_BOOST=y`
+- Codegen: `arch/arm64/Makefile` adds `-mcpu=cortex-a55 -mtune=cortex-a76` (SD732G: 6x A55 + 2x A76; clang rejects the GCC-style `cortex-a76.cortex-a55`)
+- Clang ThinLTO: `CONFIG_LTO_CLANG=y`, `CONFIG_THINLTO=y`. `scripts/Makefile.build` passes the LTO symversions prerequisite list through a file; the original inline loop overflowed the shell argument limit on qcacld's `wlan.o`.
 - Preemption: `CONFIG_PREEMPT=y`, **HZ=1000**
 - PELT half-life 16ms (`CONFIG_PELT_UTIL_HALFLIFE_16=y`)
 - I/O scheduler: deadline (default); TCP congestion control: BBR (default)
 
 ### Memory
 - Low memory killer: Simple LMK (`CONFIG_ANDROID_SIMPLE_LMK=y`); `MEMCG` is off
-- ZRAM with writeback (`CONFIG_ZRAM=y`, `CONFIG_ZRAM_WRITEBACK=y`); LZ4 and ZSTD crypto are available
+- ZRAM with writeback (`CONFIG_ZRAM=y`, `CONFIG_ZRAM_WRITEBACK=y`); the default compressor is `lz4` (set in `drivers/block/zram/zram_drv.c`)
 - Slab hardening: `CONFIG_SLAB_FREELIST_RANDOM=y`, `CONFIG_SLAB_FREELIST_HARDENED=y`
 
 ## Coding Conventions
