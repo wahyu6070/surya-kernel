@@ -5,7 +5,7 @@
 
 SECONDS=0 # builtin bash timer
 KERNEL_NAME="Zix Gaming Kernel by wahyu6070"
-ZIPNAME="Zix-Gaming-Kernel-by-wahyu6070-surya-$(date '+%Y%m%d-%H%M').zip"
+ZIPNAME="zix-gaming-kernel-by-wahyu6070-surya-$(date '+%Y%m%d-%H%M').zip"
 CLANG_VER="clang-r522817" # official Android kernel toolchain (clang 18.0.1)
 TC_DIR="$(pwd)/tc/$CLANG_VER"
 AK3_DIR="$(pwd)/android/AnyKernel3"

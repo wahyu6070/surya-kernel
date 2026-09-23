@@ -30,7 +30,7 @@ Commit and push directly to the working branch. Do not open pull requests; the u
 ```bash
 ./build.sh
 ```
-Uses Google's official Android kernel toolchain `clang-r522817` (clang 18.0.1, the version the AOSP prebuilts README lists for the Android Linux Kernel). If `tc/clang-r522817` is missing, it is downloaded from `android.googlesource.com/platform/prebuilts/clang/host/linux-x86` (about 3 GB unpacked). Don't switch to third-party clang mirrors, GCC or the NDK unless the user asks. Produces a flashable AnyKernel3 zip `Zix-Gaming-Kernel-by-wahyu6070-surya-<YYYYMMDD-HHMM>-<hash8>.zip` in the repo root; `build.sh` also sets the installer banner (`kernel.string`) to `Zix Gaming Kernel by wahyu6070 | POCO X3/NFC`.
+Uses Google's official Android kernel toolchain `clang-r522817` (clang 18.0.1, the version the AOSP prebuilts README lists for the Android Linux Kernel). If `tc/clang-r522817` is missing, it is downloaded from `android.googlesource.com/platform/prebuilts/clang/host/linux-x86` (about 3 GB unpacked). Don't switch to third-party clang mirrors, GCC or the NDK unless the user asks. Produces a flashable AnyKernel3 zip `zix-gaming-kernel-by-wahyu6070-surya-<YYYYMMDD-HHMM>-<hash8>.zip` (all lowercase) in the repo root; `build.sh` also sets the installer banner (`kernel.string`) to `Zix Gaming Kernel by wahyu6070 | POCO X3/NFC`.
 
 AnyKernel3: `android/AnyKernel3` is a gitlink (to `surya-aosp/AnyKernel3` branch `shinigami`, commit `1eb28870`) with **no `.gitmodules`**, so in a fresh clone it is an empty directory. `build.sh` uses the local template only if `android/AnyKernel3/anykernel.sh` exists; otherwise it clones `https://github.com/surya-aosp/AnyKernel3` (branch `shinigami`). The template's own banner says "Shinigami Kernel"; `build.sh` rewrites it in the staged copy only.
 
@@ -79,7 +79,7 @@ Publish every successful build as a GitHub Release on `wahyu6070/surya-kernel` w
 7. Always include a `### KernelSU Next` section (in English): the in-kernel version (`v3.2.0-legacy` + SUSFS, shown as `33279` in the manager), the matching manager **v3.2.0 (33129)** with direct APK links (regular `KernelSU_Next_v3.2.0_33129-release.apk` and spoofed `KernelSU_Next_v3.2.0-spoofed_33129-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.2.0/`), and a warning not to update the manager to v3.4.0 or dev/CI builds, because they need the "uapi" interface that this legacy kernel lacks ("uapi version mismatch" / "manager version too low"). Update this if the in-tree KernelSU version changes.
 
 ```bash
-zip=$(ls -t Zix-Gaming-Kernel-by-wahyu6070-surya-*.zip | head -1)
+zip=$(ls -t zix-gaming-kernel-by-wahyu6070-surya-*.zip | head -1)
 tag=${zip%.zip}
 sha256sum "$zip" > SHA256SUMS
 gh release create "$tag" "$zip" SHA256SUMS --repo wahyu6070/surya-kernel \
