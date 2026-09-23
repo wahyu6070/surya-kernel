@@ -59,6 +59,8 @@ $(warning Detected assembler with broken .inst; disassembly will be unreliable)
 endif
 
 KBUILD_CFLAGS	+= -mgeneral-regs-only $(lseinstr) $(brokengasinst)
+# Tune for sdmmagpie: Cortex-A55 ISA (common to both clusters), A76 scheduling
+KBUILD_CFLAGS	+= $(call cc-option,-mcpu=cortex-a55) $(call cc-option,-mtune=cortex-a76)
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= $(call cc-option, -mpc-relative-literal-loads)
 KBUILD_CFLAGS	+= -fno-pic
