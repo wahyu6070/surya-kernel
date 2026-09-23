@@ -4,7 +4,7 @@ Guidance for Codex when working in this repository.
 
 ## Project Overview
 
-Custom Android kernel ("Zix Gaming Kernel") for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm SDM (sdmmagpie / SM7150) SoC. The release kernel string is `4.14.357-ZIX-Gaming-by-wahyu6070`. Key additions include KernelSU Next legacy with SUSFS, WireGuard, Docker-related kernel options, and scheduler/memory tuning.
+Custom Android kernel ("Zix Gaming Kernel") for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm SDM (sdmmagpie / SM7150) SoC. Key additions over stock: KernelSU with SUSFS patches, WireGuard, and various scheduler/memory tuning.
 
 ## Build Commands
 
@@ -12,11 +12,9 @@ Custom Android kernel ("Zix Gaming Kernel") for the Xiaomi POCO X3 NFC (codename
 ```bash
 ./build.sh
 ```
-Requires a Clang toolchain (auto-cloned to `tc/clang-498229` if missing). `build.sh` builds `Image.gz`, `dtb.img`, and `dtbo.img`, then packages them into `zix-gaming-kernel-surya-<YYYYMMDD-HHMMSS>-<commit>.zip` in the repository root. `TC_DIR`, `AK3_DIR`, `OUT_DIR`, and `JOBS` can override the defaults; `HOSTCC`, `HOSTCFLAGS`, and `HOSTLDFLAGS` are passed through to the kernel build when set.
+Requires AOSP clang toolchain (auto-cloned to `tc/clang-498229` if missing) and AnyKernel3 (auto-cloned from `surya-aosp/AnyKernel3` if the local template is unavailable). Produces a flashable zip `zix-gaming-kernel-surya-<date>-<hash>.zip`.
 
-`android/AnyKernel3` is a gitlink without a `.gitmodules` mapping and may be empty after checkout. The script validates the local template and otherwise clones the `shinigami` branch of `surya-aosp/AnyKernel3`. It sets the installer label to Zix Gaming Kernel. Do not treat a directory's existence alone as proof that the template is usable.
-
-To package existing images without recompiling, run `./build.sh --package-only`. Rebuild the images after source or config changes before packaging a release.
+To package already-built images without recompiling, run `./build.sh --package-only`.
 
 ### Clean build
 ```bash
@@ -45,7 +43,7 @@ make -j$(nproc) O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
 
 ## Defconfig
 
-`arch/arm64/configs/surya_defconfig` is the device defconfig. After changing a `Kconfig` option, resolve it with `make O=out ARCH=arm64 surya_defconfig` and check the resulting `out/.config`. `./build.sh -r` rewrites the source defconfig, so use it when intentionally regenerating that file.
+`arch/arm64/configs/surya_defconfig` — the single defconfig for this device. After changing any `Kconfig` option, always regenerate with `./build.sh -r` so the defconfig stays minimal.
 
 ## Architecture & Key Directories
 
@@ -61,12 +59,7 @@ make -j$(nproc) O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
 - `drivers/kernelsu/` — KernelSU source, wired into `drivers/Kconfig` and `drivers/Makefile`
 - Controlled by `CONFIG_KSU=y` (built-in) and the `CONFIG_KSU_SUSFS*` family
 - Hook mode: `CONFIG_KSU_MANUAL_HOOK=y` (non-GKI kernel, no kprobes hook)
-- Embedded source tracks KernelSU Next `legacy` commit `dd074bc6` with local SUSFS integration (`v1.5.9`); reported build code is `33280`. This is not the upstream v3.4.0 kernel driver, whose syscall hook implementation does not directly build on Linux 4.14.
 - SUSFS features (sus_path, sus_mount, sus_kstat, spoof_uname, open_redirect, sus_map, etc.) are individually toggleable in Kconfig
-
-### Docker
-- The defconfig enables rootful Docker prerequisites including PID/IPC namespaces, pids/device cgroups, veth/bridge networking, and netfilter options.
-- `CONFIG_MEMCG` is disabled to preserve `ANDROID_SIMPLE_LMK`; Docker memory limits are unavailable. Runtime operation on the device has not been verified.
 
 ### WireGuard
 Built-in via `CONFIG_WIREGUARD=y` (backported into this 4.14 tree).
@@ -99,9 +92,3 @@ scripts/checkpatch.pl <patch-file>                 # check a patch
 - `AndroidKernel.mk` — integration point for AOSP build system (`make bootimage`)
 - `build.config.surya` / `build.config.common` — GKI-style build configs (used by `build/build.sh` in the AOSP kernel build flow, separate from the standalone `./build.sh`)
 - `disable_dbgfs.sh` — strips debugfs for user builds when invoked via the AOSP build flow
-
-## GitHub Releases
-
-- `gaming` is the default branch; `main` also exists. Check the remote branch state before pushing.
-- A release ZIP should be built after the final source commit so its filename contains the matching commit hash. Verify the ZIP with `zip -T`, check that it contains `anykernel.sh`, `META-INF/com/google/android/update-binary`, `tools/ak3-core.sh`, and the three kernel images, then record its SHA-256.
-- The 2026-09-23 GitHub release is a regular release. Build and ZIP integrity were verified, but boot and flashing on a device were not.
