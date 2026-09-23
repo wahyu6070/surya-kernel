@@ -36,10 +36,14 @@ static struct work_struct input_boost_work;
 
 static bool input_boost_enabled;
 
-static unsigned int input_boost_ms = 40;
+/* Default boost for sdmmagpie: silver cluster (cpu0) and gold cluster (cpu6) */
+#define DEFAULT_INPUT_BOOST_FREQ "0:1324800 6:1209600"
+
+static unsigned int input_boost_ms = 100;
 module_param(input_boost_ms, uint, 0644);
 
-static unsigned int sched_boost_on_input;
+/* CONSERVATIVE_BOOST: place top-app tasks on the gold cluster on touch */
+static unsigned int sched_boost_on_input = 2;
 module_param(sched_boost_on_input, uint, 0644);
 
 static bool sched_boost_active;
@@ -335,6 +339,7 @@ static int cpu_boost_init(void)
 		s = &per_cpu(sync_info, cpu);
 		s->cpu = cpu;
 	}
+	set_input_boost_freq(DEFAULT_INPUT_BOOST_FREQ, NULL);
 	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
 
 	ret = input_register_handler(&cpuboost_input_handler);
