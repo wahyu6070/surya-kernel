@@ -6,6 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Custom Android kernel ("Zix Gaming Kernel by wahyu6070") for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm SDM (sdmmagpie / SM7150) SoC. Key additions over stock: KernelSU with SUSFS patches, WireGuard, and various scheduler/memory tuning.
 
+## Branches
+
+Each branch is a separate kernel variant; they are developed independently and are **not** kept in sync automatically:
+
+- `main` — main (standard) kernel version, kept at the pre-2026-09-23 state (`d77a27a79`) without the Zix Gaming packaging/docs changes
+- `gaming` — gaming kernel version ("Zix Gaming Kernel by wahyu6070")
+- `docker` — `gaming` plus kernel options for running Docker inside a chroot on the phone (namespaces, cgroups, netfilter/bridge). `MEMCG` stays off because it disables Simple LMK.
+- `test/*` — boot-diagnosis branches
+
+Commit a change only to the branch whose variant it belongs to. Do not fast-forward, merge or push one variant branch onto another unless the user asks for that specific sync.
+
 ## Build Commands
 
 ### Full kernel build
@@ -46,7 +57,7 @@ Every successful build is published as a GitHub Release on `wahyu6070/surya-kern
 1. Build only from a committed, clean tree, and push that branch first (`git push origin <branch>`) so the release tag points at a commit that exists on GitHub.
 2. Tag = ZIP name without `.zip`; title = `Zix Gaming Kernel by wahyu6070 — <YYYY-MM-DD> (<branch>)`.
 3. Upload the ZIP plus a `SHA256SUMS` file.
-4. Only builds from `gaming` may become "Latest"; builds from any other branch (tests, `feat/*`) use `--prerelease`.
+4. Publish every build with `--prerelease` (it has not been boot-tested yet) and put the branch in the title. Once the user confirms it boots, promote it with `gh release edit <tag> --prerelease=false --latest`.
 5. Write the notes in Indonesian: branch, full commit hash, what changed since the previous release, SHA-256, and **"Belum diuji boot"** until the user confirms the build boots on the phone.
 
 ```bash
@@ -56,7 +67,7 @@ sha256sum "$zip" > SHA256SUMS
 gh release create "$tag" "$zip" SHA256SUMS --repo wahyu6070/surya-kernel \
   --target "$(git rev-parse HEAD)" \
   --title "Zix Gaming Kernel by wahyu6070 — $(date +%F) ($(git branch --show-current))" \
-  --notes-file notes.md   # add --prerelease unless the branch is gaming
+  --notes-file notes.md --prerelease
 ```
 
 ## Defconfig
