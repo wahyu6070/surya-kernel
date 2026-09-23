@@ -55,6 +55,9 @@ dtbo="out/arch/arm64/boot/dtbo.img"
 
 if [ -f "$kernel" ] && [ -f "$dtb" ] && [ -f "$dtbo" ]; then
 	echo -e "\nKernel compiled succesfully! Zipping up...\n"
+	if ! [ -f "$AK3_DIR/anykernel.sh" ]; then
+		git submodule update --init android/AnyKernel3 &> /dev/null
+	fi
 	if [ -f "$AK3_DIR/anykernel.sh" ]; then
 		cp -r $AK3_DIR AnyKernel3
 	elif ! git clone -q https://github.com/surya-aosp/AnyKernel3 -b shinigami; then

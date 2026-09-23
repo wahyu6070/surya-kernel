@@ -1,0 +1,4 @@
+[submodule "android/AnyKernel3"]
+	path = android/AnyKernel3
+	url = https://github.com/surya-aosp/AnyKernel3
+	branch = shinigami
