@@ -8,14 +8,9 @@ Custom Android kernel ("Zix Gaming Kernel by wahyu6070") for the Xiaomi POCO X3 
 
 ## Branches
 
-Each branch is a separate kernel variant; they are developed independently and are **not** kept in sync automatically:
-
-- `main` — main (standard) kernel version, kept at the pre-2026-09-23 state (`d77a27a79`) without the Zix Gaming packaging/docs changes
-- `gaming` — gaming kernel version ("Zix Gaming Kernel by wahyu6070")
-- `docker` — `gaming` plus kernel options for running Docker inside a chroot on the phone (namespaces, cgroups, netfilter/bridge). `MEMCG` stays off because it disables Simple LMK.
+- `main` and `gaming` — **do not change**. Both are frozen at the pre-2026-09-23 tree (`d77a27a79`); never commit, merge, fast-forward or push anything onto them unless the user explicitly asks for that branch.
+- `docker-support` — all new work since 2026-09-23 goes here: Zix Gaming ZIP branding, AnyKernel3 submodule fix, docs, and kernel options for running Docker inside a chroot on the phone (namespaces, cgroups, netfilter/bridge). `MEMCG` stays off because it disables Simple LMK.
 - `test/*` — boot-diagnosis branches
-
-Commit a change only to the branch whose variant it belongs to. Do not fast-forward, merge or push one variant branch onto another unless the user asks for that specific sync.
 
 ## Build Commands
 
