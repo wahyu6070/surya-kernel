@@ -76,6 +76,7 @@ Publish every successful build as a GitHub Release on `wahyu6070/surya-kernel` w
 4. Publish with `--prerelease`, because the build has not been boot-tested yet. Once the user confirms it boots, promote it with `gh release edit <tag> --prerelease=false --latest`.
 5. Write the notes in Indonesian: branch, full commit hash, changes since the previous release, SHA-256, and **"Belum diuji boot"** until the user confirms that the build boots.
 6. Give the user the direct download link. A prerelease does not show on the repo front page.
+7. Always include a `### KernelSU Next` section: the in-kernel version (`v3.2.0-legacy` + SUSFS, shown as `33279` in the manager), the matching manager **v3.2.0 (33129)** with direct APK links (regular `KernelSU_Next_v3.2.0_33129-release.apk` and spoofed `KernelSU_Next_v3.2.0-spoofed_33129-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.2.0/`), and a warning not to update the manager to v3.4.0 or dev/CI builds, because they need the "uapi" interface that this legacy kernel lacks ("uapi version mismatch" / "manager version too low"). Update this if the in-tree KernelSU version changes.
 
 ```bash
 zip=$(ls -t Zix-surya-*.zip | head -1)
