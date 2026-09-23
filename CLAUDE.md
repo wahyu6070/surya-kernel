@@ -39,6 +39,26 @@ make -j$(nproc) O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 \
 - `out/arch/arm64/boot/dtbo.img` — device tree overlay
 - `log.txt` — stderr from the most recent build
 
+## GitHub Releases
+
+Every successful build is published as a GitHub Release on `wahyu6070/surya-kernel` with `gh`; the user downloads the flashable ZIP from there. Do this after each build without asking again:
+
+1. Build only from a committed, clean tree, and push that branch first (`git push origin <branch>`) so the release tag points at a commit that exists on GitHub.
+2. Tag = ZIP name without `.zip`; title = `Zix Gaming Kernel by wahyu6070 — <YYYY-MM-DD> (<branch>)`.
+3. Upload the ZIP plus a `SHA256SUMS` file.
+4. Only builds from `gaming` may become "Latest"; builds from any other branch (tests, `feat/*`) use `--prerelease`.
+5. Write the notes in Indonesian: branch, full commit hash, what changed since the previous release, SHA-256, and **"Belum diuji boot"** until the user confirms the build boots on the phone.
+
+```bash
+zip=$(ls -t Zix-Gaming-Kernel-by-wahyu6070-surya-*.zip | head -1)
+tag=${zip%.zip}
+sha256sum "$zip" > SHA256SUMS
+gh release create "$tag" "$zip" SHA256SUMS --repo wahyu6070/surya-kernel \
+  --target "$(git rev-parse HEAD)" \
+  --title "Zix Gaming Kernel by wahyu6070 — $(date +%F) ($(git branch --show-current))" \
+  --notes-file notes.md   # add --prerelease unless the branch is gaming
+```
+
 ## Defconfig
 
 `arch/arm64/configs/surya_defconfig` — the single defconfig for this device. After changing any `Kconfig` option, always regenerate with `./build.sh -r` so the defconfig stays minimal.
