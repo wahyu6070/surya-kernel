@@ -501,14 +501,19 @@ ifdef builtin-target
 ifdef CONFIG_LTO_CLANG
   ifdef CONFIG_MODVERSIONS
     # combine symversions for later processing
+    # Pass the prerequisite list through a file: big multi-object
+    # targets such as qcacld's wlan.o otherwise exceed the kernel's
+    # argument size limit for a single shell command.
     update_lto_symversions =				\
+	$(file >$@.objlist,$(filter-out FORCE,$^))	\
 	rm -f $@.symversions; 				\
-	for i in $(filter-out FORCE,$^); do		\
+	for i in $$(cat $@.objlist); do			\
 		if [ -f $$i.symversions ]; then		\
 			cat $$i.symversions 		\
 				>> $@.symversions;	\
 		fi;					\
-	done;
+	done;						\
+	rm -f $@.objlist;
   endif
   # rebuild the symbol table with llvm-ar to include IR files
   update_lto_symtable = ;				\
