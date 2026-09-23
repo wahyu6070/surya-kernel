@@ -76,8 +76,6 @@ modules.builtin
 !.gitignore
 !.mailmap
 !.cocciconfig
-!/.codex/
-!/.codex/AGENTS.md
 
 #
 # Generated include files
