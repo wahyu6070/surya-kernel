@@ -77,6 +77,7 @@ Publish every successful build as a GitHub Release on `wahyu6070/surya-kernel` w
 5. Write the release notes in **English**: branch, full commit hash, changes since the previous release, SHA-256, and **"Not boot-tested yet"** until the user confirms that the build boots. (Chat replies to the user stay in Indonesian; only the GitHub release text is English.)
 6. Give the user the direct download link. A prerelease does not show on the repo front page.
 7. Always include a `### KernelSU Next` section (in English): the in-kernel version (`v3.2.0-legacy` + SUSFS, shown as `33279` in the manager), the matching manager **v3.2.0 (33129)** with direct APK links (regular `KernelSU_Next_v3.2.0_33129-release.apk` and spoofed `KernelSU_Next_v3.2.0-spoofed_33129-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.2.0/`), and a warning not to update the manager to v3.4.0 or dev/CI builds, because they need the "uapi" interface that this legacy kernel lacks ("uapi version mismatch" / "manager version too low"). Update this if the in-tree KernelSU version changes.
+8. Keep **only the newest release** on GitHub: after publishing a new one, delete every older release together with its tag (`gh release delete <tag> --yes --cleanup-tag`, plus any tag left without a release).
 
 ```bash
 zip=$(ls -t zix-gaming-kernel-by-wahyu6070-surya-*.zip | head -1)
