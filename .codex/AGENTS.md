@@ -4,7 +4,7 @@ Guidance for Codex when working in this repository.
 
 ## Project Overview
 
-Custom Android kernel ("Zix Gaming Kernel") for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm SDM (sdmmagpie / SM7150) SoC. Key additions over stock: KernelSU with SUSFS patches, WireGuard, and various scheduler/memory tuning.
+Custom Android kernel ("Shinigami") for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm SDM (sdmmagpie / SM7150) SoC. Key additions over stock: KernelSU with SUSFS patches, WireGuard, and various scheduler/memory tuning.
 
 ## Build Commands
 
@@ -12,9 +12,7 @@ Custom Android kernel ("Zix Gaming Kernel") for the Xiaomi POCO X3 NFC (codename
 ```bash
 ./build.sh
 ```
-Requires AOSP clang toolchain (auto-cloned to `tc/clang-498229` if missing) and AnyKernel3 (auto-cloned from `surya-aosp/AnyKernel3` if the local template is unavailable). Produces a flashable zip `zix-gaming-kernel-surya-<date>-<hash>.zip`.
-
-To package already-built images without recompiling, run `./build.sh --package-only`.
+Requires AOSP clang toolchain (auto-cloned to `tc/clang-498229` if missing) and AnyKernel3 (auto-cloned from `surya-aosp/AnyKernel3`). Produces a flashable zip `Shinigami-surya-<date>-<hash>.zip`.
 
 ### Clean build
 ```bash
