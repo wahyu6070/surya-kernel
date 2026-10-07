@@ -14,11 +14,11 @@ Only three branches exist. Each one is a separate kernel variant and is develope
 - `main` — main variant
 - `daily` — daily variant with a conservative config for battery life
 
-The root manager app matching this kernel is **KernelSU Next v3.2.0 (33129)**. All official KernelSU Next APKs share the signing certificate in `drivers/kernelsu/Kbuild` (`KSU_NEXT_MANAGER_SIZE`/`HASH`), so v3.4.0 is also recognized, but v3.2.0 matches the in-tree `v3.2.0-legacy-susfs`.
+The root manager app matching this kernel is **KernelSU Next v3.4.0 (33294)**, which matches the in-tree `v3.4.0-legacy-susfs`. All official KernelSU Next APKs share the signing certificate in `drivers/kernelsu/Kbuild` (`KSU_NEXT_MANAGER_SIZE`/`HASH`). SUSFS is managed from userspace with the [sidex15/susfs4ksu-module](https://github.com/sidex15/susfs4ksu-module) KernelSU module.
 
 Never sync one variant onto another (merge, fast-forward or push) unless the user asks for that specific sync. Don't create extra feature or test branches unless the user asks.
 
-On 2026-09-23 a KernelSU Next/SUSFS update and Docker-in-chroot config options caused a bootloop. `main` and `gaming` were reset to `d77a27a79`, and the Docker work was dropped. Don't re-add those changes unless the user asks.
+On 2026-09-23 a KernelSU Next/SUSFS update and Docker-in-chroot config options caused a bootloop. `main` and `gaming` were reset to `d77a27a79`, and the Docker work was dropped. Don't re-add the Docker changes unless the user asks. On 2026-10-07 the user asked for the KernelSU Next/SUSFS update again, and it was redone on `gaming` (see KernelSU + SUSFS below).
 
 ## Git Workflow
 
@@ -76,7 +76,7 @@ Publish every successful build as a GitHub Release on `wahyu6070/surya-kernel` w
 4. Publish with `--prerelease`, because the build has not been boot-tested yet. Once the user confirms it boots, promote it with `gh release edit <tag> --prerelease=false --latest`.
 5. Write the release notes in **English**: branch, full commit hash, changes since the previous release, SHA-256, and **"Not boot-tested yet"** until the user confirms that the build boots. (Chat replies to the user stay in Indonesian; only the GitHub release text is English.)
 6. Give the user the direct download link. A prerelease does not show on the repo front page.
-7. Always include a `### KernelSU Next` section (in English): the in-kernel version (`v3.2.0-legacy` + SUSFS, shown as `33279` in the manager), the matching manager **v3.2.0 (33129)** with direct APK links (regular `KernelSU_Next_v3.2.0_33129-release.apk` and spoofed `KernelSU_Next_v3.2.0-spoofed_33129-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.2.0/`), and a warning not to update the manager to v3.4.0 or dev/CI builds, because they need the "uapi" interface that this legacy kernel lacks ("uapi version mismatch" / "manager version too low"). Update this if the in-tree KernelSU version changes.
+7. Always include a `### KernelSU Next` section (in English): the in-kernel version (`v3.4.0-legacy` + SUSFS v2.3.0, shown as `33306` in the manager), the matching manager **v3.4.0 (33294)** with direct APK links (regular `KernelSU_Next_v3.4.0_33294-release.apk` and spoofed `KernelSU_Next_v3.4.0-spoofed_33294-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.4.0/`), a note that the v3.2.0 manager no longer matches this kernel, and a link to the [sidex15/susfs4ksu-module](https://github.com/sidex15/susfs4ksu-module) for SUSFS. Update this if the in-tree KernelSU version changes.
 8. Keep **only the newest release** on GitHub: after publishing a new one, delete every older release together with its tag (`gh release delete <tag> --yes --cleanup-tag`, plus any tag left without a release).
 
 ```bash
@@ -107,7 +107,11 @@ Known constraint: `CONFIG_ANDROID_SIMPLE_LMK` depends on `!MEMCG` and `PSI_DEFAU
 ### KernelSU + SUSFS
 - `drivers/kernelsu/` — KernelSU source, wired into `drivers/Kconfig` and `drivers/Makefile`
 - `CONFIG_KSU=y` (built-in), hook mode `CONFIG_KSU_MANUAL_HOOK=y` (non-GKI, no kprobes)
-- SUSFS (`CONFIG_KSU_SUSFS*`): sus_path, sus_mount, sus_kstat, try_umount, spoof_uname, spoof_cmdline, open_redirect, sus_map, hide symbols. Each one can be toggled separately in Kconfig.
+- Version: KernelSU-Next `legacy` branch at `8869bd76` (`v3.4.0-legacy-12`, 3017 commits). `drivers/kernelsu` is a plain copy, not a git repo, so `Kbuild` pins `KSU_GIT_VERSION := 3017` (reported as 30000 + 3017 + 289 = `33306`) and `KSU_GIT_TAG := v3.4.0-legacy-susfs`. Update both when syncing upstream. `include/uapi` is a symlink to `../../uapi` upstream; here it holds real copies of the headers.
+- SUSFS **v2.3.0** (`fs/susfs.c`, `include/linux/susfs*.h`). Upstream SUSFS only supports GKI (5.10+), and its `kernel-4.14` branch stopped at v1.5.5, so the `fs/`, `mm/`, `kernel/` and `security/` hooks follow sidex15's 4.14 port (`sidex15/android_kernel_lge_sm8150`, branch `OpenELA-4.14.y-Stock`). The KernelSU-side glue (`supercall.c`, `setuid_hook.c`, `kernel_umount.c`, `selinux.c`, `rules.c`, `dispatch.c`, `init.c`) follows `sidex15/KernelSU-Next` branch `legacy-susfs-v2`. Upstream KernelSU Next dropped SUSFS ("purge SuSFS remnants"), so every upstream sync has to keep this glue.
+- SUSFS userspace talks to the kernel through `reboot(KSU_INSTALL_MAGIC1, SUSFS_MAGIC /* 0xFAFAFAFA */, cmd, arg)`. `try_umount` runs the SUSFS list first and then KernelSU's own umount list, in the same `ksu_cred` task_work (`feature/kernel_umount.c`).
+- Upstream removed `ksu_handle_devpts` (pts now goes through a proxy file), so `fs/devpts/inode.c` has no KernelSU hook.
+- SUSFS (`CONFIG_KSU_SUSFS*`): sus_path, sus_mount, sus_kstat, try_umount, spoof_uname, spoof_cmdline, open_redirect, sus_map, hide symbols (all default y), and sus_memfd (default n). Each one can be toggled separately in Kconfig.
 
 ### WireGuard
 Built-in via `CONFIG_WIREGUARD=y` (backported into this 4.14 tree).
