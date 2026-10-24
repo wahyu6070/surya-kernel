@@ -77,6 +77,8 @@ modules.builtin
 !.mailmap
 !.cocciconfig
 !/.claude
+/.claude/*
+!/.claude/rules
 
 #
 # Generated include files
