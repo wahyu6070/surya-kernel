@@ -76,6 +76,7 @@ modules.builtin
 !.gitignore
 !.mailmap
 !.cocciconfig
+!/.claude
 
 #
 # Generated include files
