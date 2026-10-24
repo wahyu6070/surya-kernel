@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Custom Android kernel "Zix Gaming Kernel by wahyu6070" for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm sdmmagpie (SM7150) SoC. Key additions over stock: KernelSU with SUSFS patches, WireGuard, and performance-oriented scheduler/memory tuning. Kernel release string: `4.14.357-ZIX-Gaming-by-wahyu6070` (`CONFIG_LOCALVERSION`).
+Custom Android kernel "Zix Gaming Kernel by wahyu6070" for the Xiaomi POCO X3 NFC (codename: **surya**), based on Linux 4.14.357 for the Qualcomm sdmmagpie (SM7150) SoC. Key additions over stock: KernelSU (on this branch: BakaSU/ReSukiSU, without SUSFS), WireGuard, and performance-oriented scheduler/memory tuning. Kernel release string: `4.14.357-ZIX-Gaming-by-wahyu6070` (`CONFIG_LOCALVERSION`).
 
 ## Branches
 
@@ -15,7 +15,7 @@ Only four branches exist. Each one is a separate kernel variant and is developed
 - `main` — main variant
 - `daily` — daily variant with a conservative config for battery life
 
-On `gaming-kernelsu-next`, the root manager app matching this kernel is **KernelSU Next v3.4.1 (33333)**. The manager checks the kernel's UAPI version, not the version number: the in-tree `v3.4.0-legacy-susfs` reports `KERNEL_SU_UAPI_VERSION` **5** (shown as `33306-5`), which matches v3.4.1. The v3.4.0 manager (UAPI 4) shows "manager version is too low". All official KernelSU Next APKs share the signing certificate in `drivers/kernelsu/Kbuild` (`KSU_NEXT_MANAGER_SIZE`/`HASH`). SUSFS is managed from userspace with the [sidex15/susfs4ksu-module](https://github.com/sidex15/susfs4ksu-module) KernelSU module.
+On `gaming-bakasu` (this branch) the root manager is the **ReSukiSU v4.2.0-rc3 (35171)** APK from the [BakaSU v4.2.0-rc3 release](https://github.com/Baka-SU/BakaSU/releases/tag/v4.2.0-rc3) (see KernelSU below). On `gaming-kernelsu-next`, the root manager app matching that kernel is **KernelSU Next v3.4.1 (33333)**. The manager checks the kernel's UAPI version, not the version number: the in-tree `v3.4.0-legacy-susfs` reports `KERNEL_SU_UAPI_VERSION` **5** (shown as `33306-5`), which matches v3.4.1. The v3.4.0 manager (UAPI 4) shows "manager version is too low". All official KernelSU Next APKs share the signing certificate in `drivers/kernelsu/Kbuild` (`KSU_NEXT_MANAGER_SIZE`/`HASH`). SUSFS is managed from userspace with the [sidex15/susfs4ksu-module](https://github.com/sidex15/susfs4ksu-module) KernelSU module.
 
 Never sync one variant onto another (merge, fast-forward or push) unless the user asks for that specific sync. Don't create extra feature or test branches unless the user asks.
 
@@ -77,8 +77,8 @@ Publish every successful build as a GitHub Release on `wahyu6070/surya-kernel` w
 4. Publish with `--prerelease`, because the build has not been boot-tested yet. Once the user confirms it boots, promote it with `gh release edit <tag> --prerelease=false --latest`.
 5. Write the release notes in **English**: branch, full commit hash, changes since the previous release, SHA-256, and **"Not boot-tested yet"** until the user confirms that the build boots. (Chat replies to the user stay in Indonesian; only the GitHub release text is English.)
 6. Give the user the direct download link. A prerelease does not show on the repo front page.
-7. Always include a `### KernelSU Next` section (in English): the in-kernel version (`v3.4.0-legacy` + SUSFS v2.3.0, shown as `33306` in the manager), the matching manager **v3.4.1 (33333)** with direct APK links (regular `KernelSU_Next_v3.4.1_33333-release.apk` and spoofed `KernelSU_Next_v3.4.1-spoofed_33333-release.apk` from `github.com/KernelSU-Next/KernelSU-Next/releases/download/v3.4.1/`), a note that older managers (v3.4.0 = UAPI 4, v3.2.0) show "manager version is too low" with this kernel (UAPI 5), and a link to the [sidex15/susfs4ksu-module](https://github.com/sidex15/susfs4ksu-module) for SUSFS. Update this if the in-tree KernelSU version changes. Pick the manager release whose `uapi/supercall.h` has the same `KERNEL_SU_UAPI_VERSION` as `drivers/kernelsu/include/uapi/supercall.h`.
-8. After publishing a new build, delete every older **prerelease** (builds that were never confirmed to boot) together with its tag (`gh release delete <tag> --yes --cleanup-tag`), plus any tag left without a release. **Never delete a stable release** (one the user confirmed boots and that was promoted with `--prerelease=false`), so a known-good build always stays available.
+7. Always include a root section (in English). On `gaming-bakasu` it is `### BakaSU (ReSukiSU)`: the in-kernel version (`v4.2.0-rc3`, version code `35171`, manual hook, **no SUSFS**), the matching manager **ReSukiSU v4.2.0-rc3 (35171)** with direct APK links (`ReSukiSU_v4.2.0-rc3_35171-arm64-v8a-release.apk` and `ReSukiSU_v4.2.0-rc3_35171-universal-release.apk` from `github.com/Baka-SU/BakaSU/releases/download/v4.2.0-rc3/`), a note that the official KernelSU, KOWSU, SukiSU-Ultra and ReSukiSU managers are also accepted (multi-manager support) while KernelSU Next managers are not, and that SUSFS modules (susfs4ksu) do not work on this build. Update this if the in-tree BakaSU version changes; pick the manager from the same BakaSU release tag as `drivers/kernelsu`. On `gaming-kernelsu-next` it is `### KernelSU Next` (see that branch's CLAUDE.md).
+8. After publishing a new build, delete every older **prerelease of the same branch** (builds that were never confirmed to boot; the branch is in the release title) together with its tag (`gh release delete <tag> --yes --cleanup-tag`), plus any tag left without a release. **Never delete a stable release** (one the user confirmed boots and that was promoted with `--prerelease=false`), so a known-good build always stays available.
 
 ```bash
 zip=$(ls -t zix-gaming-kernel-by-wahyu6070-surya-*.zip | head -1)
@@ -92,7 +92,7 @@ gh release create "$tag" "$zip" SHA256SUMS --repo wahyu6070/surya-kernel \
 
 ## Defconfig
 
-`arch/arm64/configs/surya_defconfig` is the only defconfig for this device. After changing any `Kconfig` option, regenerate it with `./build.sh -r` so it stays minimal. After an edit, confirm that each new symbol resolves to `=y` in `out/.config`. Kconfig silently drops a symbol whose dependencies are not met.
+`arch/arm64/configs/surya_defconfig` is the only defconfig for this device. After changing any `Kconfig` option, regenerate it with `./build.sh -r` so it stays minimal. After an edit, confirm that each new symbol resolves to `=y` in `out/.config`. Kconfig silently drops a symbol whose dependencies are not met. Caveat: `./build.sh -r` runs `make savedefconfig` without `CC=clang`/`LLVM=1`, so Kconfig evaluates clang-only dependencies differently and the output drops or reorders unrelated options (seen 2026-10-24: `PROCESS_RECLAIM`, `F2FS_FS_LZ4/ZSTD`, `LOG_CPU_MAX_BUF_SHIFT`, several `is not set` lines). Review the diff, and for a small change edit the defconfig by hand instead.
 
 Known constraint: `CONFIG_ANDROID_SIMPLE_LMK` depends on `!MEMCG` and `PSI_DEFAULT_DISABLED`. Enabling `MEMCG` silently disables Simple LMK.
 
@@ -105,14 +105,14 @@ Known constraint: `CONFIG_ANDROID_SIMPLE_LMK` depends on `!MEMCG` and `PSI_DEFAU
 - `techpack/audio/` — ALSA ASoC machine/codec/DSP drivers
 - `techpack/data/` — RMNET and data-path drivers
 
-### KernelSU + SUSFS
-- `drivers/kernelsu/` — KernelSU source, wired into `drivers/Kconfig` and `drivers/Makefile`
-- `CONFIG_KSU=y` (built-in), hook mode `CONFIG_KSU_MANUAL_HOOK=y` (non-GKI, no kprobes)
-- Version: KernelSU-Next `legacy` branch at `8869bd76` (`v3.4.0-legacy-12`, 3017 commits). `drivers/kernelsu` is a plain copy, not a git repo, so `Kbuild` pins `KSU_GIT_VERSION := 3017` (reported as 30000 + 3017 + 289 = `33306`) and `KSU_GIT_TAG := v3.4.0-legacy-susfs`. Update both when syncing upstream. `include/uapi` is a symlink to `../../uapi` upstream; here it holds real copies of the headers.
-- SUSFS **v2.3.0** (`fs/susfs.c`, `include/linux/susfs*.h`). Upstream SUSFS only supports GKI (5.10+), and its `kernel-4.14` branch stopped at v1.5.5, so the `fs/`, `mm/`, `kernel/` and `security/` hooks follow sidex15's 4.14 port (`sidex15/android_kernel_lge_sm8150`, branch `OpenELA-4.14.y-Stock`). The KernelSU-side glue (`supercall.c`, `setuid_hook.c`, `kernel_umount.c`, `selinux.c`, `rules.c`, `dispatch.c`, `init.c`) follows `sidex15/KernelSU-Next` branch `legacy-susfs-v2`. Upstream KernelSU Next dropped SUSFS ("purge SuSFS remnants"), so every upstream sync has to keep this glue.
-- SUSFS userspace talks to the kernel through `reboot(KSU_INSTALL_MAGIC1, SUSFS_MAGIC /* 0xFAFAFAFA */, cmd, arg)`. `try_umount` runs the SUSFS list first and then KernelSU's own umount list, in the same `ksu_cred` task_work (`feature/kernel_umount.c`).
-- Upstream removed `ksu_handle_devpts` (pts now goes through a proxy file), so `fs/devpts/inode.c` has no KernelSU hook.
-- SUSFS (`CONFIG_KSU_SUSFS*`): sus_path, sus_mount, sus_kstat, try_umount, spoof_uname, spoof_cmdline, open_redirect, sus_map, hide symbols (all default y), and sus_memfd (default n). Each one can be toggled separately in Kconfig.
+### KernelSU (BakaSU / ReSukiSU)
+- `drivers/kernelsu/` — the `kernel/` directory of [Baka-SU/BakaSU](https://github.com/Baka-SU/BakaSU) (formerly ReSukiSU, a tiann/KernelSU downstream) at tag **v4.2.0-rc3** (`239e1e88`, 4471 commits, still branded `ReSukiSU`), wired into `drivers/Kconfig` and `drivers/Makefile`. Switched from KernelSU Next on 2026-10-24.
+- `drivers/kernelsu` is a plain copy, not a git submodule. Upstream `Kbuild` refuses to build without `../.git`, so here it pins `KSU_LOCAL_VERSION := 4471` (version code 30000 + 4471 + 700 = `35171`), `KSU_TAG_NAME`, `KSU_COMMIT_SHA` and `KSU_BRANCH_NAME`. Update them when syncing upstream (`git rev-list --count <tag>`). `include/uapi` is a symlink to `../../uapi` upstream; here it holds real copies of the headers. `setup.sh`, `build-all*.sh` and `.vscode` were left out.
+- `CONFIG_KSU=y` (built-in), hook mode `CONFIG_KSU_MANUAL_HOOK=y` (the Kconfig hook choice is Tracepoint / Manual / SUSFS Inline; tracepoint needs GKI 2.0). `KSU_MULTI_MANAGER_SUPPORT=y`.
+- Manual hooks (BakaSU `manual-integrate` guide, checked at build time by `tools/manual_hook_check.mk`; a missing hook fails the build): `ksu_handle_execveat` (`fs/exec.c`, `__do_execve_file`), `ksu_handle_faccessat` (`fs/open.c`), `ksu_handle_stat` (newfstatat/fstatat64) plus `ksu_handle_newfstat_ret`/`ksu_handle_fstat64_ret` (`fs/stat.c`), `ksu_handle_sys_reboot` (`kernel/reboot.c`). setuid, the init.rc read and the volume-down input are hooked automatically (`CONFIG_KSU_MANUAL_HOOK_AUTO_{SETUID,INITRC,INPUT}_HOOK`, via LSM and an input_handler), so there are no hooks in `kernel/sys.c`, `fs/read_write.c` or `drivers/input/input.c`. Don't add `ksu_vfs_read_hook`, `is_ksu_transition` or `ksu_handle_rename` hooks: the build check rejects them.
+- No `ksu_handle_post_execveat` hook: it is optional (without it BakaSU uses the `bprm_committed_creds` LSM hook), and the guide's placement would read `filename` after `__do_execve_file` has freed it.
+- `CONFIG_KALLSYMS_ALL=y`, so the static-symbol exports in the guide (`write_op`, `sel_handle_status_ops`, …) are not needed.
+- **SUSFS is off.** BakaSU's SUSFS mode only supports the latest upstream SUSFS kernel side (simonpunk `gki-*` branches, which removed try_umount/sus_memfd and changed the sus_kstat API), while this tree carries sidex15's older 4.14 port of v2.3.0. The SUSFS kernel code (`fs/susfs.c` and the `CONFIG_KSU_SUSFS*` hooks in `fs/`, `mm/`, `kernel/`, `security/`) is still in the tree but compiles out because `CONFIG_KSU_SUSFS` is not set. Enabling it needs a backport of the current upstream SUSFS kernel side first.
 
 ### WireGuard
 Built-in via `CONFIG_WIREGUARD=y` (backported into this 4.14 tree).
