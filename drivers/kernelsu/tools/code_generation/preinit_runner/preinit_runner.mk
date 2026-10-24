@@ -3,9 +3,11 @@
 # (CONFIG_HEADERS_INSTALL, enabled by gki_defconfig).
 KSU_UAPI_INC := $(objtree)/usr/include
 
+# Linux 4.14 exports KBUILD_SRC to sub-makes. Clear it, or the top Makefile
+# skips its O= handling and generates headers inside the source tree.
 ifeq ($(wildcard $(KSU_UAPI_INC)/linux/unistd.h),)
 KSU_HEADERS_INSTALL_OUTPUT := $(shell $(MAKE) -s -C "$(abspath $(srctree))" \
-	O="$(abspath $(objtree))" ARCH="$(ARCH)" \
+	KBUILD_SRC= O="$(abspath $(objtree))" ARCH="$(ARCH)" \
 	headers_install INSTALL_HDR_PATH="$(abspath $(objtree))/usr")
 endif
 
